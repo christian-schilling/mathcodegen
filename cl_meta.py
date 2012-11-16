@@ -23,6 +23,12 @@ class CLExpression:
     def __rfloordiv__(self, other):
         return CLExpression('(int){}/(int){}'.format(other,self))
 
+    def __truediv__(self, other):
+        return CLExpression('{}/{}'.format(self,other))
+
+    def __rtruediv__(self, other):
+        return CLExpression('{}/{}'.format(other,self))
+
     def __div__(self, other):
         return CLExpression('{}/{}'.format(self,other))
 
@@ -62,8 +68,14 @@ class CLExpression:
     def cos(self):
         return CLExpression('cos({})'.format(self))
 
+    def sin(self):
+        return CLExpression('sin({})'.format(self))
+
     def __str__(self):
         return '({})'.format(self.exp)
+
+    def __pow__(self,other):
+        return CLExpression('pow({},{})'.format(self,other))
 
 def cl_meta(func):
     def f(self,*args):
@@ -77,5 +89,23 @@ def cl_meta(func):
         r = func(self,*args)
         if type(r) is list:
             r = ';'.join(map(str,r))
+        return r
+    return f
+
+def symbolic(func):
+    import sympy
+
+    def f(self,*args):
+        exprs = {}
+        for arg in args:
+            exprs[sympy.Symbol(arg)] = CLExpression(arg)
+
+        exprs = list(exprs.items())
+        symargs = [x for x,y in exprs]
+        expargs = [y for x,y in exprs]
+
+        f = func(self,*map(sympy.Symbol,args))
+        l = sympy.lambdify(symargs,f,CLExpression)
+        r = l(*[CLExpression(x) for x in expargs])
         return r
     return f
