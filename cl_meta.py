@@ -77,6 +77,11 @@ class CLExpression:
     def __pow__(self,other):
         return CLExpression('pow({},{})'.format(self,other))
 
+    def sqrt(self):
+        return CLExpression('sqrt({})'.format(self))
+
+    pi = 'M_PI'
+
 def cl_meta(func):
     def f(self,*args):
         newargs = []
@@ -95,16 +100,34 @@ def cl_meta(func):
 def symbolic(func):
     import sympy
 
+    def slugify(s):
+        return s.replace(r'[','__').replace(r']','')
+
     def f(self,*args):
         exprs = {}
         for arg in args:
-            exprs[sympy.Symbol(arg)] = CLExpression(arg)
+            if type(arg) is list:
+                for a in arg:
+                    exprs[sympy.Symbol(slugify(a))] = CLExpression(a)
+            else:
+                exprs[sympy.Symbol(slugify(arg))] = CLExpression(arg)
+
 
         exprs = list(exprs.items())
         symargs = [x for x,y in exprs]
         expargs = [y for x,y in exprs]
 
-        f = func(self,*map(sympy.Symbol,args))
+        newargs = []
+        for arg in args:
+            if type(arg) is list:
+                na = []
+                for a in arg:
+                    na.append(sympy.Symbol(slugify(a)))
+                newargs.append(na)
+            else:
+                newargs.append(sympy.Symbol(slugify(arg)))
+
+        f = func(self,*newargs)
         l = sympy.lambdify(symargs,f,CLExpression)
         r = l(*[CLExpression(x) for x in expargs])
         return r
