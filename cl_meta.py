@@ -101,7 +101,11 @@ def symbolic(func):
     import sympy
 
     def slugify(s):
-        return s.replace(r'[','__').replace(r']','')
+        if isinstance(s,CLExpression):
+            s = str(s)
+        s = s.replace(r'[','_orbrace_').replace(r']','_crbrace_')
+        s = s.replace(r'(','_rbrace_').replace(r')','_cbrace_')
+        return s
 
     def f(self,*args):
         exprs = {}
