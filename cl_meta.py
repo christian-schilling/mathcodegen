@@ -1,86 +1,71 @@
 
+
+class ExpressionMeta(type):
+    def __new__(mcs,name,bases,dict):
+
+        operations = dict['operations']
+        constants = dict['constants']
+        for name,fs in operations:
+            def makel(f):
+                return lambda *args: args[0].__class__(f.format(
+                    *map(args[0].__class__,args)
+                ))
+            dict[name] = makel(fs)
+
+        cls = type.__new__(mcs,name,bases,dict)
+
+        for name,c in constants:
+            setattr(cls,name,cls(c))
+
+        return cls
+
 class CLExpression:
+    __metaclass__ = ExpressionMeta
+
     def __init__(self,exp):
         self.exp = exp
-
-    def __getitem__(self,key):
-        return CLExpression('{}[{}]'.format(self,key))
-
-    def __mul__(self, other):
-        return CLExpression('{}*{}'.format(self,other))
-    __rmul__ = __mul__
-
-    def __add__(self, other):
-        return CLExpression('{}+{}'.format(self,other))
-    __radd__ = __add__
-
-    def __sub__(self, other):
-        return CLExpression('{}-{}'.format(self,CLExpression(other)))
-
-    def __floordiv__(self, other):
-        return CLExpression('(int){}/(int){}'.format(self,other))
-
-    def __rfloordiv__(self, other):
-        return CLExpression('(int){}/(int){}'.format(other,self))
-
-    def __truediv__(self, other):
-        return CLExpression('{}/{}'.format(self,other))
-
-    def __rtruediv__(self, other):
-        return CLExpression('{}/{}'.format(other,self))
-
-    def __div__(self, other):
-        return CLExpression('{}/{}'.format(self,other))
-
-    def __rdiv__(self, other):
-        return CLExpression('{}/{}'.format(other,self))
-
-    def __mod__(self, other):
-        return CLExpression('(int){}%(int){}'.format(self,other))
-
-    def __le__(self,other):
-        return CLExpression('{}<={}'.format(self,other))
-
-    def __ge__(self,other):
-        return CLExpression('{}>={}'.format(self,other))
-
-    def __lt__(self,other):
-        return CLExpression('{}<{}'.format(self,other))
-
-    def __gt__(self,other):
-        return CLExpression('{}>{}'.format(self,other))
-
-    def select(self,x,y):
-        return CLExpression('{}?{}:{}'.format(self,x,y))
-
-    def assign(self,e):
-        return CLExpression('{}={}'.format(self,e))
-
-    def floor(self):
-        return CLExpression('floor({})'.format(self))
-
-    def cast(self,t):
-        return CLExpression('({}){}'.format(t,self))
-
-    def clip(self,low,high):
-        return CLExpression('min(max({},0.0f),1.0f)'.format(self))
-
-    def cos(self):
-        return CLExpression('cos({})'.format(self))
-
-    def sin(self):
-        return CLExpression('sin({})'.format(self))
 
     def __str__(self):
         return '({})'.format(self.exp)
 
-    def __pow__(self,other):
-        return CLExpression('pow({},{})'.format(self,other))
+    constants = [
+        ('pi','M_PI'),
+    ]
 
-    def sqrt(self):
-        return CLExpression('sqrt({})'.format(self))
+    operations = [
+        ('__neg__','-{}'),
+        ('__sub__','{}-{}'),
+        ('__add__','{}+{}'),
+        ('__radd__','{1}+{0}'),
+        ('__mul__','{}*{}'),
+        ('__rmul__','{1}*{0}'),
+        ('__div__','{}/{}'),
+        ('__rdiv__','{1}/{0}'),
+        ('__floordiv__','(int){}/(int){}'),
+        ('__rfloordiv__','(int){1}/(int){0}'),
+        ('__mod__','(int){}%(int){}'),
+        ('__rmod__','(int){1}%(int){0}'),
+        ('__truediv__','{}/{}'),
+        ('__rtruediv__','{1}/{0}'),
+        ('__getitem__','{}[{}]'),
+        ('__le__','{}<={}'),
+        ('__ge__','{}>={}'),
+        ('__lt__','{}<{}'),
+        ('__gt__','{}>{}'),
+        ('select','{}?{}:{}'),
+        ('assign','{}={}'),
+        ('cast','({1}){0}'),
+        ('floor','floor({})'),
+        ('clip','min(max({},(float){}),(float){})'),
+        ('cos','cos({})'),
+        ('sin','sin({})'),
+        ('__pow__','pow({},{})'),
+        ('pow','pow({},{})'),
+        ('sqrt','sqrt({})'),
+    ]
 
-    pi = 'M_PI'
+
+
 
 def cl_meta(func):
     def f(self,*args):
