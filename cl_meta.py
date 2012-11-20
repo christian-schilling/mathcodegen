@@ -62,6 +62,7 @@ class CLExpression:
         ('__pow__','pow({},{})'),
         ('pow','pow({},{})'),
         ('sqrt','sqrt({})'),
+        ('gamma','tgamma({})'),
     ]
 
 
