@@ -54,7 +54,7 @@ class CLExpression:
         ('__gt__','{}>{}'),
         ('select','{}?{}:{}'),
         ('assign','{}={}'),
-        ('cast','({1}){0}'),
+        ('cast','{1}({0})'), # brackets will be added because type is an expression
         ('floor','floor({})'),
         ('clip','min(max({},(float){}),(float){})'),
         ('cos','cos({})'),
