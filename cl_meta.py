@@ -88,17 +88,19 @@ def symbolic(func):
     def slugify(s):
         if isinstance(s,CLExpression):
             s = str(s)
+
+        s = '({})'.format(s)
         s = s.replace(r'[','_orbrace_').replace(r']','_crbrace_')
         s = s.replace(r'(','_rbrace_').replace(r')','_cbrace_')
         return s
 
-    def f(self,*args):
+    def f(*args):
         exprs = {}
         for arg in args:
             if type(arg) is list:
                 for a in arg:
                     exprs[sympy.Symbol(slugify(a))] = CLExpression(a)
-            else:
+            elif type(arg) in (str,unicode,CLExpression):
                 exprs[sympy.Symbol(slugify(arg))] = CLExpression(arg)
 
 
@@ -113,11 +115,13 @@ def symbolic(func):
                 for a in arg:
                     na.append(sympy.Symbol(slugify(a)))
                 newargs.append(na)
-            else:
+            elif type(arg) in (str,unicode,CLExpression):
                 newargs.append(sympy.Symbol(slugify(arg)))
+            else:
+                newargs.append(arg)
 
-        f = func(self,*newargs)
-        l = sympy.lambdify(symargs,f,CLExpression)
-        r = l(*[CLExpression(x) for x in expargs])
+        symbolic_result = func(*newargs)
+        lambdified = sympy.lambdify(symargs,symbolic_result,CLExpression)
+        r = lambdified(*[CLExpression(x) for x in expargs])
         return r
     return f
