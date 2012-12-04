@@ -61,7 +61,7 @@ class CLExpression:
         ('sin','sin({})'),
         ('__pow__','pow({},{})'),
         ('pow','pow({},{})'),
-        ('sqrt','sqrt({})'),
+        ('sqrt','sqrt((float){})'),
         ('gamma','tgamma({})'),
     ]
 
@@ -90,8 +90,10 @@ def symbolic(func):
         if isinstance(s,CLExpression):
             s = str(s)
         s = s.replace(r'[','_orbrace_').replace(r']','_crbrace_')
-        s = s.replace(r'(','_rbrace_').replace(r')','_cbrace_')
-        return s
+        s = s.replace(r'(','_obrace_').replace(r')','_cbrace_')
+        s = s.replace(r'{','_ocbrace_').replace(r'}','_ccbrace_')
+        s = s.replace(r'*','_mult_').replace(r'+','_plus_')
+        return 'tmpsymbol_{}'.format(s)
 
     def f(self,*args):
         exprs = {}
