@@ -2,17 +2,17 @@
 
 class ExpressionMeta(type):
     def __new__(mcs,name,bases,dict):
-
         operations = dict['operations']
         constants = dict['constants']
+        cls = type.__new__(mcs,name,bases,dict)
+
         for name,fs in operations:
             def makel(f):
-                return lambda *args: args[0].__class__(f.format(
-                    *map(args[0].__class__,args)
+                return lambda *args: cls(f.format(
+                    *map(cls,args)
                 ))
-            dict[name] = makel(fs)
+            setattr(cls,name,makel(fs))
 
-        cls = type.__new__(mcs,name,bases,dict)
 
         for name,c in constants:
             setattr(cls,name,cls(c))
@@ -54,7 +54,7 @@ class CLExpression:
         ('__gt__','{}>{}'),
         ('select','{}?{}:{}'),
         ('assign','{}={}'),
-        ('cast','({1}){0}'),
+        ('cast','{1}({0})'), # brackets will be added because type is an expression
         ('floor','floor({})'),
         ('clip','min(max({},(float){}),(float){})'),
         ('cos','cos({})'),
@@ -62,6 +62,7 @@ class CLExpression:
         ('__pow__','pow({},{})'),
         ('pow','pow({},{})'),
         ('sqrt','sqrt({})'),
+        ('gamma','tgamma({})'),
     ]
 
 
