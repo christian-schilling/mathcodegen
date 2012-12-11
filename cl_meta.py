@@ -95,6 +95,7 @@ def symbolic(func):
         s = s.replace(r'(','_obrace_').replace(r')','_cbrace_')
         s = s.replace(r'{','_ocbrace_').replace(r'}','_ccbrace_')
         s = s.replace(r'*','_mult_').replace(r'+','_plus_')
+        s = s.replace(r'-','_minus_').replace(r'/','_div_')
         return 'tmpsymbol_{}'.format(s)
 
     def f(*args):
@@ -127,4 +128,9 @@ def symbolic(func):
         lambdified = sympy.lambdify(symargs,symbolic_result,CLExpression)
         r = lambdified(*[CLExpression(x) for x in expargs])
         return r
+
+    def sy(*args):
+        return func(*args)
+
+    f.symbolic = sy
     return f
