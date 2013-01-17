@@ -103,9 +103,9 @@ def symbolic(func):
         for arg in args:
             if type(arg) is list:
                 for a in arg:
-                    exprs[sympy.Symbol(slugify(a))] = CLExpression(a)
+                    exprs[sympy.Symbol(slugify(a),real=True)] = CLExpression(a)
             elif type(arg) in (str,unicode,CLExpression):
-                exprs[sympy.Symbol(slugify(arg))] = CLExpression(arg)
+                exprs[sympy.Symbol(slugify(arg),real=True)] = CLExpression(arg)
 
 
         exprs = list(exprs.items())
@@ -117,10 +117,10 @@ def symbolic(func):
             if type(arg) is list:
                 na = []
                 for a in arg:
-                    na.append(sympy.Symbol(slugify(a)))
+                    na.append(sympy.Symbol(slugify(a),real=True))
                 newargs.append(na)
             elif type(arg) in (str,unicode,CLExpression):
-                newargs.append(sympy.Symbol(slugify(arg)))
+                newargs.append(sympy.Symbol(slugify(arg),real=True))
             else:
                 newargs.append(arg)
 
@@ -132,5 +132,40 @@ def symbolic(func):
     def sy(*args):
         return func(*args)
 
+    def itersym(ctx,*args,**kwargs):
+        return iterate_symbolic(ctx,f,*args,**kwargs)
+
     f.symbolic = sy
+    f.elementwise = itersym
     return f
+
+
+
+def iterate_symbolic(ctx,func,iterate=1,input=[],output=[]):
+    from pyopencl.elementwise import ElementwiseKernel
+    unique = []
+    i=0
+    for x in input+output:
+        if not hasattr(x,'paramname'):
+            unique.append(x)
+            x.paramname = 'param{}'.format(i)
+            i+=1
+
+    paramlist = ','.join(["float* {}".format(x.paramname) for x in unique])
+    code = ';'.join(["float tmp_{}={}[i]".format(x.paramname,x.paramname) for x in input])
+    #print code
+    code += ';'
+    code += ';'.join(["{}[i]={{}}".format(x.paramname,x.paramname) for x in output])
+    #print code
+    code += ';'
+    code = code.format(*func(*['tmp_'+x.paramname for x in input]))
+    code = "for(int j=0;j<{};j++){{{}}}".format(iterate,code)
+    #print paramlist
+    #print code
+    kernel = ElementwiseKernel(ctx,paramlist,code,"update")
+    def updater(queue):
+        kernel(*unique)
+    updater.code = code
+    for x in unique:
+        del x.paramname
+    return updater
