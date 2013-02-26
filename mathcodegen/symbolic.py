@@ -58,7 +58,7 @@ def symbolic(function):
     func.function = function
 
     # create elementwise
-    def itersym(self,ctx,*args,**kwargs):
+    def itersym(self, ctx, *args, **kwargs):
         return iterate_symbolic(ctx, func, *args, **kwargs)
 
     func.map = types.MethodType(itersym, func, type(func))
