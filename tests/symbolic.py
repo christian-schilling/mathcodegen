@@ -1,12 +1,12 @@
 import unittest
-import cl_meta
+import mathcodegen
 from scipy import weave
 
 class TestBasicArithmetic(unittest.TestCase):
 
     def test_add(self):
 
-        @cl_meta.symbolic
+        @mathcodegen.symbolic
         def adder(a,b):
             return a+b
 
@@ -17,7 +17,7 @@ class TestBasicArithmetic(unittest.TestCase):
 class TestBoundFunction(unittest.TestCase):
     offset = 5
 
-    @cl_meta.symbolic
+    @mathcodegen.symbolic
     def adder(self,a,b):
         return a+b+self.offset
 

@@ -1,7 +1,7 @@
 import unittest
 import pyopencl as cl
 import pyopencl.array
-from cl_meta import symbolic,iterate_symbolic
+from mathcodegen import symbolic,iterate_symbolic
 import numpy
 
 class TestElementwise(unittest.TestCase):

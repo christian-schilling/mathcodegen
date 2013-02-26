@@ -1,81 +1,13 @@
-
-
-class ExpressionMeta(type):
-    def __new__(mcs,name,bases,dict):
-        operations = dict['operations']
-        constants = dict['constants']
-        cls = type.__new__(mcs,name,bases,dict)
-
-        for name,fs in operations:
-            def makel(f):
-                return lambda *args: cls(f.format(
-                    *map(cls,args)
-                ))
-            setattr(cls,name,makel(fs))
-
-
-        for name,c in constants:
-            setattr(cls,name,cls(c))
-
-        return cls
-
-class CLExpression:
-    __metaclass__ = ExpressionMeta
-
-    def __init__(self,exp):
-        self.exp = exp
-
-    def __str__(self):
-        return '({})'.format(self.exp)
-
-    constants = [
-        ('pi','M_PI'),
-    ]
-
-    operations = [
-        ('__neg__','-{}'),
-        ('__sub__','{}-{}'),
-        ('__add__','{}+{}'),
-        ('__radd__','{1}+{0}'),
-        ('__mul__','{}*{}'),
-        ('__rmul__','{1}*{0}'),
-        ('__div__','{}/{}'),
-        ('__rdiv__','{1}/{0}'),
-        ('__floordiv__','(int){}/(int){}'),
-        ('__rfloordiv__','(int){1}/(int){0}'),
-        ('__mod__','(int){}%(int){}'),
-        ('__rmod__','(int){1}%(int){0}'),
-        ('__truediv__','{}/{}'),
-        ('__rtruediv__','{1}/{0}'),
-        ('__getitem__','{}[{}]'),
-        ('__le__','{}<={}'),
-        ('__ge__','{}>={}'),
-        ('__lt__','{}<{}'),
-        ('__gt__','{}>{}'),
-        ('select','{}?{}:{}'),
-        ('assign','{}={}'),
-        ('cast','{1}({0})'), # brackets will be added because type is an expression
-        ('floor','floor({})'),
-        ('clip','min(max({},(float){}),(float){})'),
-        ('cos','cos({})'),
-        ('sin','sin({})'),
-        ('__pow__','pow({},{})'),
-        ('pow','pow({},{})'),
-        ('sqrt','sqrt((float){})'),
-        ('gamma','tgamma({})'),
-    ]
-
-
-
+from expression import Expression
 
 def cl_meta(func):
     def f(self,*args):
         newargs = []
         for arg in args:
             if type(arg) is list:
-                newargs.append(map(CLExpression,arg))
+                newargs.append(map(Expression,arg))
             else:
-                newargs.append(CLExpression(arg))
+                newargs.append(Expression(arg))
         args = newargs
         r = func(self,*args)
         if type(r) is list:
@@ -87,7 +19,7 @@ def symbolic(func):
     import sympy
 
     def slugify(s):
-        if isinstance(s,CLExpression):
+        if isinstance(s,Expression):
             s = str(s)
 
         s = '({})'.format(s)
@@ -103,9 +35,9 @@ def symbolic(func):
         for arg in args:
             if type(arg) is list:
                 for a in arg:
-                    exprs[sympy.Symbol(slugify(a),real=True)] = CLExpression(a)
-            elif type(arg) in (str,unicode,CLExpression):
-                exprs[sympy.Symbol(slugify(arg),real=True)] = CLExpression(arg)
+                    exprs[sympy.Symbol(slugify(a),real=True)] = Expression(a)
+            elif type(arg) in (str,unicode,Expression):
+                exprs[sympy.Symbol(slugify(arg),real=True)] = Expression(arg)
 
 
         exprs = list(exprs.items())
@@ -119,15 +51,15 @@ def symbolic(func):
                 for a in arg:
                     na.append(sympy.Symbol(slugify(a),real=True))
                 newargs.append(na)
-            elif type(arg) in (str,unicode,CLExpression):
+            elif type(arg) in (str,unicode,Expression):
                 newargs.append(sympy.Symbol(slugify(arg),real=True))
             else:
                 newargs.append(arg)
 
         symbolic_result = func(*newargs)
 
-        lambdified = sympy.lambdify(symargs,symbolic_result,CLExpression)
-        r = lambdified(*[CLExpression(x) for x in expargs])
+        lambdified = sympy.lambdify(symargs,symbolic_result,Expression)
+        r = lambdified(*[Expression(x) for x in expargs])
         return r
 
     def sy(*args):
@@ -158,11 +90,11 @@ def iterate_symbolic(ctx,func,iterations=1,input=[],output=[],output_indices=Non
 
     out_indices = ['i' for x in output]
     if output_indices:
-        out_indices = map(str,output_indices(CLExpression(len(unique[0])),CLExpression('i'),CLExpression('iteration')))
+        out_indices = map(str,output_indices(Expression(len(unique[0])),Expression('i'),Expression('iteration')))
 
     in_indices = ['i' for x in input if hasattr(x,'paramname')]
     if input_indices:
-        in_indices = map(str,input_indices(CLExpression(len(unique[0])),CLExpression('i'),CLExpression('iteration')))
+        in_indices = map(str,input_indices(Expression(len(unique[0])),Expression('i'),Expression('iteration')))
 
     for i,index in enumerate(in_indices):
         in_indices[i] = '({i}>=0?{i}:0)'.format(i=index)

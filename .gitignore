@@ -1,3 +1,4 @@
 *.pyc
 *.swp
 opencl_meta_tools.egg-info/
+mathcodegen.egg-info/
