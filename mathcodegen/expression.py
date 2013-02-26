@@ -90,7 +90,7 @@ class Expression:
 
     def __pow__(self, value):
         if not isinstance(value, int):
-            raise self.pow(value)
+            return self.pow(value)
 
         if value == 1:
             return self
