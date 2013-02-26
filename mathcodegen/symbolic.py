@@ -1,65 +1,63 @@
+from sympy import lambdify, Symbol
 from expression import Expression
+import types
 
-def symbolic(func):
-    import sympy
+# parse symbolic function arguments
+def parseArgument(argument, name):
+    # string and expression argument
+    symbol, expression = None, None
+    if type(argument) in (str, unicode, Expression):
+        # create symbols
+        expression = Expression(argument)
+        symbol = Symbol(name, real=True)
 
-    def slugify(s):
-        if isinstance(s,Expression):
-            s = str(s)
+        # replace argument by symbol
+        argument = symbol
 
-        s = '({})'.format(s)
-        s = s.replace(r'[','_orbrace_').replace(r']','_crbrace_')
-        s = s.replace(r'(','_obrace_').replace(r')','_cbrace_')
-        s = s.replace(r'{','_ocbrace_').replace(r'}','_ccbrace_')
-        s = s.replace(r'*','_mult_').replace(r'+','_plus_')
-        s = s.replace(r'-','_minus_').replace(r'/','_div_')
-        return 'tmpsymbol_{}'.format(s)
+    # list argument
+    elif type(argument) is list:
+        newarg, symbol, expression = [], [], []
+        for i in range(len(argument)):
+            # parse argument
+            res = parseArgument(argument[i],
+                '{}_{}'.format(name, i))
 
-    def f(*args):
-        exprs = {}
-        for arg in args:
-            if type(arg) is list:
-                for a in arg:
-                    exprs[sympy.Symbol(slugify(a),real=True)] = Expression(a)
-            elif type(arg) in (str,unicode,Expression):
-                exprs[sympy.Symbol(slugify(arg),real=True)] = Expression(arg)
+            # add args to lists
+            newarg.append(res[0])
+            if res[1] is not None:
+                symbol += res[1] if type(res[1]) is list else [res[1]]
+            if res[2] is not None:
+                expression += res[2] if type(res[2]) is list else [res[2]]
 
+        # replace argument by symbols
+        argument = newarg
 
-        exprs = list(exprs.items())
-        symargs = [x for x,y in exprs]
-        expargs = [y for x,y in exprs]
+    return argument, symbol, expression
 
-        newargs = []
-        for arg in args:
-            if type(arg) is list:
-                na = []
-                for a in arg:
-                    na.append(sympy.Symbol(slugify(a),real=True))
-                newargs.append(na)
-            elif type(arg) in (str,unicode,Expression):
-                newargs.append(sympy.Symbol(slugify(arg),real=True))
-            else:
-                newargs.append(arg)
+# create symbolic expression
+def symbolic(function):
+    def func(*args):
+        # parse arguments
+        args = [arg for arg in args]
+        args, symargs, expargs = parseArgument(args, 'tempsymbol')
 
-        symbolic_result = func(*newargs)
+        # create lambda function
+        lambda_function = lambdify(symargs, function(*args),
+            modules=Expression)
 
-        lambdified = sympy.lambdify(symargs,symbolic_result,Expression)
-        r = lambdified(*[Expression(x) for x in expargs])
-        return r
+        # evaluate expression
+        expression = lambda_function(*expargs)
 
-    def sy(*args):
-        return func(*args)
+        # check type
+        if type(expression) not in (list, str, unicode, Expression):
+            expression = Expression(expression)
 
-    def itersym(self,ctx,*args,**kwargs):
-        return iterate_symbolic(ctx,f,*args,**kwargs)
+        return expression
 
-    import types
-    f.symbolic = sy
-    f.map = types.MethodType(itersym,f,type(f))
-    f.elementwise = f.map
-    return f
+    # save function
+    func.function = function
 
-
+    return func
 
 def iterate_symbolic(ctx,func,iterations=1,input=[],output=[],output_indices=None,input_indices=None,assignment='='):
     from pyopencl.elementwise import ElementwiseKernel
