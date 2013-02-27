@@ -2,7 +2,9 @@ from sympy import lambdify, Symbol
 from expression import Expression
 import types
 
-# parse symbolic function arguments
+# parse symbolic function arguments recursivly.
+# generates lists of symbols and expressions and
+# replaces strings in argument list by symbols
 def parseArgument(argument, name):
     # string and expression argument
     symbol, expression = None, None
@@ -37,11 +39,11 @@ def parseArgument(argument, name):
 # create symbolic expression
 def symbolic(function):
     def func(*args):
-        # parse arguments
-        args = [arg for arg in args]
+        # parse function arguments
+        args = list(args)
         args, symargs, expargs = parseArgument(args, 'tempsymbol')
 
-        # create lambda function
+        # create lambda function of symbolic result of the given function
         lambda_function = lambdify(symargs, function(*args),
             modules=Expression)
 
@@ -86,17 +88,15 @@ def iterate_symbolic(ctx,func,iterations=1,input=[],output=[],output_indices=Non
     if input_indices:
         in_indices = map(str,input_indices(Expression(len(unique[0])),Expression('i'),Expression('iteration')))
 
+    # limit indices to array length
     for i,index in enumerate(in_indices):
         in_indices[i] = '({i}>=0?{i}:0)'.format(i=index)
-
     for i,index in enumerate(in_indices):
         in_indices[i] = '({i}<{l}?{i}:({l}-1))'.format(i=index,l=len(output[0]))
 
+    # create assignment operator list with same assignment operator for each index if string
     if isinstance(assignment,str):
         assignment = [assignment]*len(output)
-
-    #print in_indices
-
 
     paramlist = ','.join(["float* {}".format(x.paramname) for x in unique])
     code = ';'.join(["float tmp_{}_{}={}[{}]".format(i,x.paramname,x.paramname,ind) for i,ind,x in zip(range(len(input)),in_indices,input) if hasattr(x,'paramname')])
