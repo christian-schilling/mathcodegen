@@ -1,47 +1,15 @@
 from sympy import lambdify, Symbol
 from expression import Expression
+from argument_parser import argumentParser
 import types
 
-# parse symbolic function arguments recursivly.
-# generates lists of symbols and expressions and
-# replaces strings in argument list by symbols
-def parseArgument(argument, name):
-    # string and expression argument
-    symbol, expression = None, None
-    if type(argument) in (str, unicode, Expression):
-        # create symbols
-        expression = Expression(argument)
-        symbol = Symbol(name, real=True)
-
-        # replace argument by symbol
-        argument = symbol
-
-    # list argument
-    elif type(argument) is list:
-        newarg, symbol, expression = [], [], []
-        for i in range(len(argument)):
-            # parse argument
-            res = parseArgument(argument[i],
-                '{}_{}'.format(name, i))
-
-            # add args to lists
-            newarg.append(res[0])
-            if res[1] is not None:
-                symbol += res[1] if type(res[1]) is list else [res[1]]
-            if res[2] is not None:
-                expression += res[2] if type(res[2]) is list else [res[2]]
-
-        # replace argument by symbols
-        argument = newarg
-
-    return argument, symbol, expression
-
-# create symbolic expression
+# create function wich is evaluated by sympy symbols
+# the result is parsed by the Expression class
 def symbolic(function):
     def func(*args):
         # parse function arguments
         args = list(args)
-        args, symargs, expargs = parseArgument(args, 'tempsymbol')
+        args, symargs, expargs = argumentParser(args, 'tempsymbol')
 
         # create lambda function of symbolic result of the given function
         lambda_function = lambdify(symargs, function(*args),
@@ -50,7 +18,7 @@ def symbolic(function):
         # evaluate expression
         expression = lambda_function(*expargs)
 
-        # check type
+        # create expression type, if neccessary
         if type(expression) not in (list, str, unicode, Expression):
             expression = Expression(expression)
 
