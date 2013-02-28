@@ -1,6 +1,8 @@
 import unittest
 import mathcodegen
 from scipy import weave
+import sympy
+import numpy
 
 class TestBasicArithmetic(unittest.TestCase):
 
@@ -27,3 +29,14 @@ class TestBoundFunction(unittest.TestCase):
         self.assertEqual(5+11,weave.inline('return_val = {};'.format(self.adder(6,5))))
 
 
+class TestConstantParam(unittest.TestCase):
+
+    @mathcodegen.symbolic
+    def substituter(self,constant,symbol,expression):
+        return expression.subs({'x':constant*symbol})
+
+    def test_substitute(self):
+        x = sympy.Symbol('x')
+        expression = x**2*sympy.sqrt(3)
+        code = 'float b=4;return_val = {};'.format(self.substituter(5,'b',expression))
+        self.assertAlmostEqual(numpy.sqrt(3)*(5*4)**2,weave.inline(code))

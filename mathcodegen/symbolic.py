@@ -1,6 +1,7 @@
 from sympy import lambdify, Symbol
 from expression import Expression
 from argument_parser import argumentParser
+from result_parser import resultParser
 import types
 
 # create function wich is evaluated by sympy symbols
@@ -14,7 +15,7 @@ def symbolic(function):
         args, symargs, expargs = argumentParser(args)
 
         # create lambda function of symbolic result of the given function
-        lambda_function = lambdify(symargs, function(*args),
+        lambda_function = lambdify(symargs, resultParser(function(*args)),
             modules=Expression)
 
         # evaluate expression
