@@ -1,4 +1,4 @@
-from sympy import lambdify, Symbol, N
+from sympy import lambdify, Symbol, N, simplify
 from expression import Expression
 from helper import replace_arguments, map_recursively
 import types
@@ -13,12 +13,13 @@ def symbolic(function):
         # used symbols and corresponding expressions are returned
         args, symargs, expargs = replace_arguments(args, replacer='symbol')
 
+        # evaluate function and simplify and numerically evaluate result
+        symbolic_result = map_recursively(N,
+            map_recursively(simplify, function(*args)))
+
         # create lambda function of symbolic result of the given function
-        lambda_function = lambdify(
-            symargs,
-            map_recursively(N, function(*args)),
-            modules=Expression,
-            )
+        lambda_function = lambdify(symargs, symbolic_result,
+            modules=Expression)
 
         # evaluate expression
         expression = lambda_function(*expargs)
