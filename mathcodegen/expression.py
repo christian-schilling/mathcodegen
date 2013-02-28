@@ -31,7 +31,8 @@ class Expression:
         self.recursion_depth = recursion_depth;
         self.subexpression = subexpression
 
-        # shorten expression
+        # shorten expression if recursion depth is above limit
+        # this is needed to enable compiler like clang to parse the expressions
         if recursion_depth >= 100:
             self.subexpression = ('subexpression_{}'.format(id(self.expression)),
                 Expression(self.expression, recursion_depth - 1, self.subexpression))
@@ -41,7 +42,7 @@ class Expression:
     def __str__(self):
         return '({})'.format(self.expression)
 
-    # constants
+    # list of constants which are turned into member by ExpressionMeta
     constants = [
         ('pi', 'M_PI')
     ]
