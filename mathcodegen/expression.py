@@ -11,8 +11,10 @@ class ExpressionMeta(type):
         # Expression
         for name, operation in operations:
             def makeMethod(f):
-                return lambda self, *args: cls(f.format(self, *map(cls, args)),
-                self.recursion_depth + 1, self.subexpression)
+                return lambda self, *args: cls(
+                    f.format(self, *map(cls, args)),
+                    self.recursion_depth + 1, self.subexpression
+                )
             setattr(cls, name, makeMethod(operation))
 
         # create member of type Expression
@@ -43,7 +45,7 @@ class Expression:
     def __str__(self):
         return '({})'.format(self.expression)
 
-    # list of constants which are turned into member by ExpressionMeta
+    # list of constants which are turned into attributes by ExpressionMeta
     constants = [
         ('pi', 'M_PI')
     ]
