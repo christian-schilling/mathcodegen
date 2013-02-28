@@ -102,14 +102,14 @@ class Expression:
         if not isinstance(value, int):
             return self.pow(value)
 
+        if value < 0:
+            return 1.0 / (self ** (-value))
+        elif value == 0:
+            return Expression(1.0)
         if value == 1:
             return self
-        # use inverse on negative values
-        elif value < 0:
-            return '(1.0)/{}'.format(self ** (-value))
         else:
-            return Expression('{}*{}'.format(
-                self, self ** (value - 1)))
+            return self * self ** (value-1)
 
     # create compound statement containing all subexpressions to 
     # generate single evaluatable expression
