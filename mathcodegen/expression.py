@@ -95,7 +95,7 @@ class Expression:
             return self
         # use inverse on negative values
         elif value < 0:
-            return '(1.0)/({})'.format(self ** (-value))
+            return '(1.0)/{}'.format(self ** (-value))
         else:
             return Expression('{}*{}'.format(
                 self, self ** (value - 1)),
