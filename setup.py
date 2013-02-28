@@ -2,18 +2,18 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='opencl_meta_tools',
+    name='mathcodegen',
     version='0.0.1',
-    description='helpers for opencl metaprograming',
-    author='Christian Schilling',
-    author_email='initcrash@gmail.com',
-    url='http://github.com/initcrash/opencl_meta_tools/',
-    download_url='http://github.com/initcrash/opencl_meta_tools/downloads',
+    description='generate code and more from symbolic expression',
+    author=['Christian Schilling', 'Patrik Gebhardt'],
+    author_email=['initcrash@gmail.com', 'grosser.knuff@gmail.com'],
+    url='http://github.com/initcrash/mathcodegen/',
+    download_url='http://github.com/initcrash/mathcodegen/downloads',
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
         "Topic :: Software Development"
     ],
-    py_modules=[ 'cl_meta', ],
+    py_modules=['mathcodegen',],
 )
