@@ -1,6 +1,6 @@
 from sympy import lambdify, Symbol
 from expression import Expression
-from argument_parser import argumentParser
+from helper import replace_arguments
 
 # create function which is evaluated by values of Expression type
 def expressionize(function):
@@ -8,7 +8,7 @@ def expressionize(function):
         args = list(args)
 
         # replace string arguments by values of type Expression
-        args, _, _ = argumentParser(args, argument_replacer='expression')
+        args, _, _ = replace_arguments(args, replacer='expression')
 
         # evaluate expression
         expression = function(*args)

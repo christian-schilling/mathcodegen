@@ -2,11 +2,11 @@ from sympy import lambdify, Symbol
 from expression import Expression
 import types
 
-# parse function arguments recursivly
+# replaces function arguments recursivly
 # generates lists of symbols and expressions and
 # replaces strings in argument list by symbols or expressions
-def argumentParser(argument, symbol_name_base='tmp',
-    argument_replacer='symbol'):
+def replace_arguments(argument, replacer='symbol',
+    symbol_name_base='tmp'):
     # create expression and symbol for string argument
     # replaces argument by symbol or expression
     symbol, expression = None, None
@@ -17,23 +17,22 @@ def argumentParser(argument, symbol_name_base='tmp',
         symbol = Symbol(symbol_name_base, real=True)
 
         # replace argument
-        if argument_replacer == 'symbol':
+        if replacer == 'symbol':
             argument = symbol
-        elif argument_replacer == 'expression':
+        elif replacer == 'expression':
             argument = expression
         else:
-            raise ValueError('argument_replacer has to be "symbol" or "expression"')
+            raise ValueError('replacer has to be "symbol" or "expression"')
 
-    # apply argumentParser recursivly to replace string arguments in
+    # apply replace_arguments recursivly to replace string arguments in
     # nested lists
     elif type(argument) is list:
         newarg, symbol, expression = [], [], []
         for i in range(len(argument)):
             # parse argument recursivly
-            arg, symarg, exparg = argumentParser(
-                argument[i],
-                '{}_{}'.format(symbol_name_base, i),
-                argument_replacer)
+            arg, symarg, exparg = replace_arguments(
+                argument[i], replacer,
+                '{}_{}'.format(symbol_name_base, i))
             newarg.append(arg)
 
             # store generated symbols and expressions in flat list
@@ -44,3 +43,16 @@ def argumentParser(argument, symbol_name_base='tmp',
         argument = newarg
 
     return argument, symbol, expression
+
+# evaluates function recursivly on elements
+# in nested lists
+def map_recursively(function, value):
+    if type(value) is list:
+        result = []
+        for i in range(len(value)):
+            res = map_recursively(function, value[i])
+            result.append(res)
+    else:
+        result = function(value)
+
+    return result
