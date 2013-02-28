@@ -11,10 +11,14 @@ class ExpressionMeta(type):
         # Expression
         for name, operation in operations:
             def makeMethod(f):
-                return lambda self, *args: cls(
-                    f.format(self, *map(cls, args)),
-                    self.recursion_depth + 1, self.subexpression
-                )
+                def method(*args):
+                    # create expessions for all arguments
+                    expessions = [arg if type(arg) is cls else cls(arg) for arg in args]
+
+                    return cls(f.format(*expessions),
+                        expessions[0].recursion_depth+1,
+                        expessions[0].subexpression)
+                return method
             setattr(cls, name, makeMethod(operation))
 
         # create member of type Expression
@@ -29,18 +33,18 @@ class ExpressionMeta(type):
 class Expression:
     __metaclass__ = ExpressionMeta
 
-    def __init__(self, expression, recursion_depth=0, subexpression=None):
+    def __init__(self, expression, recursion_depth=1, subexpression=None):
         self.expression = expression
-        self.recursion_depth = recursion_depth;
+        self.recursion_depth = recursion_depth
         self.subexpression = subexpression
 
         # put current expression in to a subexpression and replace expression
         # by its name
-        if recursion_depth >= 100:
+        if self.recursion_depth >= 100:
             self.subexpression = ('subexpression_{}'.format(id(self.expression)),
-                Expression(self.expression, recursion_depth - 1, self.subexpression))
+                Expression(self.expression, self.recursion_depth-1, self.subexpression))
             self.expression = self.subexpression[0]
-            self.recursion_depth = 0
+            self.recursion_depth = 1
 
     def __str__(self):
         return '({})'.format(self.expression)
@@ -100,8 +104,7 @@ class Expression:
             return '(1.0)/{}'.format(self ** (-value))
         else:
             return Expression('{}*{}'.format(
-                self, self ** (value - 1)),
-                self.recursion_depth + 1, self.subexpression)
+                self, self ** (value - 1)))
 
     # expand subexpressions to generate single expression
     def expand(self, dtype='float'):

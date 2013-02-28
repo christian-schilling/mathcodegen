@@ -37,6 +37,7 @@ class TestConstantParam(unittest.TestCase):
 
     def test_substitute(self):
         x = sympy.Symbol('x')
-        expression = x**2*sympy.sqrt(3)
+        expression = x**2*sympy.sin(3)
         code = 'float b=4;return_val = {};'.format(self.substituter(5,'b',expression))
-        self.assertAlmostEqual(numpy.sqrt(3)*(5*4)**2,weave.inline(code))
+        print code
+        self.assertAlmostEqual(numpy.sin(3)*(5*4)**2,weave.inline(code))

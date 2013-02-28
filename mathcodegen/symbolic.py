@@ -13,12 +13,8 @@ def symbolic(function):
         # used symbols and corresponding expressions are returned
         args, symargs, expargs = replace_arguments(args, replacer='symbol')
 
-        # evaluate function and simplify and numerically evaluate result
-        symbolic_result = map_recursively(N,
-            map_recursively(simplify, function(*args)))
-
         # create lambda function of symbolic result of the given function
-        lambda_function = lambdify(symargs, symbolic_result,
+        lambda_function = lambdify(symargs, function(*args),
             modules=Expression)
 
         # evaluate expression
