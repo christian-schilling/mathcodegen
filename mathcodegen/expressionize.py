@@ -2,13 +2,14 @@ from sympy import lambdify, Symbol
 from expression import Expression
 from argument_parser import argumentParser
 
-# create function wich is evaluated by values of Expression type
+# create function which is evaluated by values of Expression type
 def expressionize(function):
     def func(*args):
         args = list(args)
 
         # replace string arguments by values of type Expression
-        args, _, _ = argumentParser(args, 'tempsymbol', 'expression')
+        args, _, _ = argumentParser(args, 'tempsymbol',
+            argument_replacer='expression')
 
         # evaluate expression
         expression = function(*args)

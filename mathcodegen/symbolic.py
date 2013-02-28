@@ -7,8 +7,10 @@ import types
 # the result is parsed by the Expression class
 def symbolic(function):
     def func(*args):
-        # parse function arguments
         args = list(args)
+
+        # replace string or Expression arguments by symbols
+        # used symbols and corresponding expressions are returned
         args, symargs, expargs = argumentParser(args, 'tempsymbol')
 
         # create lambda function of symbolic result of the given function

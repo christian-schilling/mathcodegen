@@ -2,19 +2,20 @@ from sympy import lambdify, Symbol
 from expression import Expression
 import types
 
-# parse symbolic function arguments recursivly.
+# parse function arguments recursivly
 # generates lists of symbols and expressions and
-# replaces strings in argument list by symbols
+# replaces strings in argument list by symbols or expressions
 def argumentParser(argument, symbol_name_base,
     argument_replacer='symbol'):
-    # string and expression argument
+    # create expression and symbol for string argument
+    # replaces argument by symbol or expression
     symbol, expression = None, None
     if type(argument) in (str, unicode, Expression):
         # create symbols
         expression = Expression(argument)
         symbol = Symbol(symbol_name_base, real=True)
 
-        # replace argument by symbol
+        # replace argument
         if argument_replacer == 'symbol':
             argument = symbol
         elif argument_replacer == 'expression':
@@ -22,23 +23,23 @@ def argumentParser(argument, symbol_name_base,
         else:
             raise ValueError('argument_replacer has to be "symbol" or "expression"')
 
-    # list argument
+    # apply argumentParser recursivly to replace string arguments in
+    # nested lists
     elif type(argument) is list:
         newarg, symbol, expression = [], [], []
         for i in range(len(argument)):
-            # parse argument
-            res = argumentParser(
+            # parse argument recursivly
+            arg, symarg, exparg = argumentParser(
                 argument[i],
                 '{}_{}'.format(symbol_name_base, i),
                 argument_replacer)
+            newarg.append(arg)
 
-            # add args to lists
-            newarg.append(res[0])
-            if res[1] is not None:
-                symbol += res[1] if type(res[1]) is list else [res[1]]
-            if res[2] is not None:
-                expression += res[2] if type(res[2]) is list else [res[2]]
-
-        # replace argument by symbols
+            # store generated symbols and expressions in flat list
+            if symarg is not None:
+                symbol += symarg if type(symarg) is list else [symarg]
+            if exparg is not None:
+                expression += exparg if type(exparg) is list else [exparg]
         argument = newarg
+
     return argument, symbol, expression
