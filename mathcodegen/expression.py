@@ -12,12 +12,17 @@ class ExpressionMeta(type):
         for name, operation in operations:
             def makeMethod(f):
                 def method(*args):
-                    # create expessions for all arguments
-                    expessions = [arg if type(arg) is cls else cls(arg) for arg in args]
+                    # create expessions for all non expression arguments
+                    expressions = [arg if type(arg) is cls else cls(arg) for arg in args]
 
-                    return cls(f.format(*expessions),
-                        expessions[0].recursion_depth+1,
-                        expessions[0].subexpression)
+                    # generate new expression with result of operation,
+                    # list of all subexpressions and the sum of the recursion depths
+                    return cls(f.format(*expressions),
+                        reduce(lambda x, y: x+y, [expression.recursion_depth for expression in expressions]),
+                        [subexpression for expression in expressions
+                            for subexpression in expression.subexpressions
+                                if len(expression.subexpressions) != 0])
+
                 return method
             setattr(cls, name, makeMethod(operation))
 
@@ -33,17 +38,17 @@ class ExpressionMeta(type):
 class Expression:
     __metaclass__ = ExpressionMeta
 
-    def __init__(self, expression, recursion_depth=1, subexpression=None):
+    def __init__(self, expression, recursion_depth=1, subexpressions=[]):
         self.expression = expression
         self.recursion_depth = recursion_depth
-        self.subexpression = subexpression
+        self.subexpressions = subexpressions
 
         # put current expression in to a subexpression and replace expression
         # by its name
-        if self.recursion_depth >= 100:
-            self.subexpression = ('subexpression_{}'.format(id(self.expression)),
-                Expression(self.expression, self.recursion_depth-1, self.subexpression))
-            self.expression = self.subexpression[0]
+        if self.recursion_depth >= 200:
+            subexpression = ('subexpression_{}'.format(id(self.expression)), str(self.expression))
+            self.subexpressions.append(subexpression)
+            self.expression = subexpression[0]
             self.recursion_depth = 1
 
     def __str__(self):
@@ -106,28 +111,12 @@ class Expression:
             return Expression('{}*{}'.format(
                 self, self ** (value - 1)))
 
-    # expand subexpressions to generate single expression
+    # create compound statement containing all subexpressions to 
+    # generate single evaluatable expression
     def expand(self, dtype='float'):
-        # generate list containing tuples with subexpression and
-        # its name. This list will be reversed ordered.
-        subexpressions = []
-        expression = self
-        while True:
-            if expression.subexpression is not None:
-                # get subexpression
-                subexpressions.append(
-                    (expression.subexpression[0],
-                        str(expression.subexpression[1])))
-
-                # go one setp deeper
-                expression = expression.subexpression[1]
-            else:
-                break
-
-        # create a compound statement containing all subexpressions
         compound_statement = '({\n'
-        for expression in reversed(subexpressions):
-            compound_statement += '{} {} = {};\n'.format(dtype, expression[0], expression[1])
+        for subexpression in self.subexpressions:
+            compound_statement += '{} {} = {};\n'.format(dtype, subexpression[0], subexpression[1])
         compound_statement += '{};\n}})'.format(self)
 
         return compound_statement

@@ -39,5 +39,4 @@ class TestConstantParam(unittest.TestCase):
         x = sympy.Symbol('x')
         expression = x**2*sympy.sin(3)
         code = 'float b=4;return_val = {};'.format(self.substituter(5,'b',expression))
-        print code
         self.assertAlmostEqual(numpy.sin(3)*(5*4)**2,weave.inline(code))
