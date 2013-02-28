@@ -1,28 +1,29 @@
+# creates member and methods for Expression class from lists
+# of tuples. The only use of it is to save some lines of code
 class ExpressionMeta(type):
     def __new__(mcs, name, bases, dict):
-        # get operations and constants
         operations = dict['operations']
         constants = dict['constants']
-
-        # create class
         cls = type.__new__(mcs, name, bases, dict)
 
-        # create operation methods
+        # create operation methods, all arguments are expected to be
+        # compatible with Expression class. Return value is always an
+        # Expression
         for name, operation in operations:
-            # method generator
             def makeMethod(f):
                 return lambda self, *args: cls(f.format(self, *map(cls, args)),
                 self.recursion_depth + 1, self.subexpression)
-
-            # generate method
             setattr(cls, name, makeMethod(operation))
 
-        # set constants
+        # create member of type Expression
         for name, constant in constants:
             setattr(cls, name, cls(constant))
 
         return cls
 
+# Provides mathematical operations on strings. A recursion depth counter is
+# implemented to split expessions with recursion depth above a limit.
+# This is needed to avoid recursion depth limitations of c compiler.
 class Expression:
     __metaclass__ = ExpressionMeta
 
@@ -31,8 +32,8 @@ class Expression:
         self.recursion_depth = recursion_depth;
         self.subexpression = subexpression
 
-        # shorten expression if recursion depth is above limit
-        # this is needed to enable compiler like clang to parse the expressions
+        # put current expression in to a subexpression and replace expression
+        # by its name
         if recursion_depth >= 100:
             self.subexpression = ('subexpression_{}'.format(id(self.expression)),
                 Expression(self.expression, recursion_depth - 1, self.subexpression))
@@ -97,10 +98,10 @@ class Expression:
                 self, self ** (value - 1)),
                 self.recursion_depth + 1, self.subexpression)
 
-    # enrole subexpressions to generate single expression
+    # expand subexpressions to generate single expression
     def expand(self, dtype='float'):
-        # generate list containing list of tuples with subexpression and
-        # its name. This list will be reversed order
+        # generate list containing tuples with subexpression and
+        # its name. This list will be reversed ordered.
         subexpressions = []
         expression = self
         while True:
@@ -116,9 +117,9 @@ class Expression:
                 break
 
         # create a compound statement containing all subexpressions
-        code = '({\n'
+        compound_statement = '({\n'
         for expression in reversed(subexpressions):
-            code += '{} {} = {};\n'.format(dtype, expression[0], expression[1])
-        code += '{};\n}})'.format(self)
+            compound_statement += '{} {} = {};\n'.format(dtype, expression[0], expression[1])
+        compound_statement += '{};\n}})'.format(self)
 
-        return code
+        return compound_statement
