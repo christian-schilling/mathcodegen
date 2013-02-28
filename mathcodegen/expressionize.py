@@ -1,18 +1,25 @@
 from sympy import lambdify, Symbol
 from expression import Expression
+from argument_parser import argumentParser
 
-def expressionize(func):
-    def f(self,*args):
-        newargs = []
-        for arg in args:
-            if type(arg) is list:
-                newargs.append(map(Expression,arg))
-            else:
-                newargs.append(Expression(arg))
-        args = newargs
-        r = func(self,*args)
-        if type(r) is list:
-            r = ';'.join(map(str,r))
-        return r
-    return f
+# create function wich is evaluated by values of Expression type
+def expressionize(function):
+    def func(*args):
+        args = list(args)
 
+        # replace string arguments by values of type Expression
+        args, _, _ = argumentParser(args, 'tempsymbol', 'expression')
+
+        # evaluate expression
+        expression = function(*args)
+
+        # concacate expression lists
+        if type(expression) is list:
+            expression = ';'.join(map(str, expression))
+
+        # create values of type expression, if neccessary
+        elif type(expression) not in (str, unicode, Expression):
+            expression = Expression(expression)
+
+        return expression
+    return func
