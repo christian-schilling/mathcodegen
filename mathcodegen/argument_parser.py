@@ -5,13 +5,14 @@ import types
 # parse function arguments recursivly
 # generates lists of symbols and expressions and
 # replaces strings in argument list by symbols or expressions
-def argumentParser(argument, symbol_name_base,
+def argumentParser(argument, symbol_name_base='tmp',
     argument_replacer='symbol'):
     # create expression and symbol for string argument
     # replaces argument by symbol or expression
     symbol, expression = None, None
     if type(argument) in (str, unicode, Expression):
-        # create symbols
+        # create expression and symbol for argument
+        # to avoid sympy naming conflicts, symbol gets a custom name
         expression = Expression(argument)
         symbol = Symbol(symbol_name_base, real=True)
 

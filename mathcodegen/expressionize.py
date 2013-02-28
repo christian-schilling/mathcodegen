@@ -8,8 +8,7 @@ def expressionize(function):
         args = list(args)
 
         # replace string arguments by values of type Expression
-        args, _, _ = argumentParser(args, 'tempsymbol',
-            argument_replacer='expression')
+        args, _, _ = argumentParser(args, argument_replacer='expression')
 
         # evaluate expression
         expression = function(*args)

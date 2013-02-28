@@ -11,7 +11,7 @@ def symbolic(function):
 
         # replace string or Expression arguments by symbols
         # used symbols and corresponding expressions are returned
-        args, symargs, expargs = argumentParser(args, 'tempsymbol')
+        args, symargs, expargs = argumentParser(args)
 
         # create lambda function of symbolic result of the given function
         lambda_function = lambdify(symargs, function(*args),
@@ -26,7 +26,7 @@ def symbolic(function):
 
         return expression
 
-    # save function
+    # save original function
     func.function = function
 
     # create elementwise
