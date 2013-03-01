@@ -1,4 +1,4 @@
-# creates member and methods for Expression class from lists
+# creates attributes and methods for Expression class from lists
 # of tuples. The only use of it is to save some lines of code
 class ExpressionMeta(type):
     def __new__(mcs, name, bases, dict):
@@ -25,7 +25,7 @@ class ExpressionMeta(type):
                 return method
             setattr(cls, name, makeMethod(operation))
 
-        # create member of type Expression
+        # create attributes of type Expression
         for name, constant in constants:
             setattr(cls, name, cls(constant))
 
@@ -117,7 +117,7 @@ class Expression:
     # create compound statement containing all subexpressions to
     # generate single evaluatable expression
     def expand(self, dtype='float'):
-        compound_statement = '({\n'
-        for subexpression in self.subexpressions:
-            compound_statement += '{} {} = {};\n'.format(dtype, subexpression[0], subexpression[1])
-        return compound_statement + '{};\n}})'.format(self)
+        return '({' + \
+            ''.join(['{} {} = {};\n'.format(dtype, name, subexpression)
+                for name, subexpression in self.subexpressions]) + \
+            '{};}})'.format(self)
