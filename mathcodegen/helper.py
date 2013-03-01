@@ -9,14 +9,12 @@ def replace_arguments(argument, replacer='symbol',
     symbol_name_base='tmp'):
     # create expression and symbol for string argument
     # replaces argument by symbol or expression
+    # to avoid sympy naming conflicts, symbol gets a custom name
     symbol, expression = None, None
     if type(argument) in (str, unicode, Expression):
-        # create expression and symbol for argument
-        # to avoid sympy naming conflicts, symbol gets a custom name
         expression = argument if type(argument) is Expression else Expression(argument)
         symbol = Symbol(symbol_name_base, real=True)
 
-        # replace argument
         if replacer == 'symbol':
             argument = symbol
         elif replacer == 'expression':
@@ -24,12 +22,11 @@ def replace_arguments(argument, replacer='symbol',
         else:
             raise ValueError('replacer has to be "symbol" or "expression"')
 
-    # apply replace_arguments recursivly to replace string arguments in
-    # nested lists
+    # apply replace_arguments recursivly to replace string or expression
+    # arguments in nested lists
     elif type(argument) is list:
         newarg, symbol, expression = [], [], []
         for i in range(len(argument)):
-            # replace argument recursively
             arg, symarg, exparg = replace_arguments(
                 argument[i], replacer,
                 '{}_{}'.format(symbol_name_base, i))
