@@ -37,6 +37,10 @@ class ExpressionMeta(type):
 class Expression:
     __metaclass__ = ExpressionMeta
 
+    # maximum recursion depth of Expression, above that limit
+    # expressions are split up into subexpressions
+    max_recursion_depth = 100
+
     def __init__(self, expression, recursion_depth=1, subexpressions=[]):
         self.expression = expression
         self.recursion_depth = recursion_depth
@@ -44,7 +48,7 @@ class Expression:
 
         # put current expression in to a subexpression and replace expression
         # by its name
-        if self.recursion_depth >= 100:
+        if self.recursion_depth >= self.max_recursion_depth:
             subexpression = ('subexpression_{}'.format(id(self.expression)), str(self.expression))
             self.subexpressions.append(subexpression)
             self.expression = subexpression[0]
