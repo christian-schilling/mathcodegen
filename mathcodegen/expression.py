@@ -20,8 +20,7 @@ class ExpressionMeta(type):
                     return cls(f.format(*expressions),
                         reduce(lambda x, y: x+y, [expression.recursion_depth for expression in expressions]),
                         [subexpression for expression in expressions
-                            for subexpression in expression.subexpressions
-                                if len(expression.subexpressions) != 0])
+                            for subexpression in expression.subexpressions])
 
                 return method
             setattr(cls, name, makeMethod(operation))
@@ -45,7 +44,7 @@ class Expression:
 
         # put current expression in to a subexpression and replace expression
         # by its name
-        if self.recursion_depth >= 200:
+        if self.recursion_depth >= 100:
             subexpression = ('subexpression_{}'.format(id(self.expression)), str(self.expression))
             self.subexpressions.append(subexpression)
             self.expression = subexpression[0]

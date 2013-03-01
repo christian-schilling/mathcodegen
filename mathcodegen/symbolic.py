@@ -9,8 +9,8 @@ def symbolic(function):
     def func(*args):
         args = list(args)
 
-        # replace string or Expression arguments by symbols
-        # used symbols and corresponding expressions are returned
+        # Replace string or Expression arguments by symbols.
+        # Used symbols and corresponding expressions are returned.
         args, symargs, expargs = replace_arguments(args, replacer='symbol')
 
         # create lambda function of symbolic result of the given function

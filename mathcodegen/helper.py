@@ -2,7 +2,7 @@ from sympy import lambdify, Symbol
 from expression import Expression
 import types
 
-# replaces function arguments recursivly
+# replaces function arguments recursively
 # generates lists of symbols and expressions and
 # replaces strings in argument list by symbols or expressions
 def replace_arguments(argument, replacer='symbol',
@@ -29,7 +29,7 @@ def replace_arguments(argument, replacer='symbol',
     elif type(argument) is list:
         newarg, symbol, expression = [], [], []
         for i in range(len(argument)):
-            # parse argument recursivly
+            # replace argument recursively
             arg, symarg, exparg = replace_arguments(
                 argument[i], replacer,
                 '{}_{}'.format(symbol_name_base, i))
@@ -44,7 +44,7 @@ def replace_arguments(argument, replacer='symbol',
 
     return argument, symbol, expression
 
-# evaluates function recursivly on elements
+# evaluates function recursively on elements
 # in nested lists
 def map_recursively(function, value):
     if type(value) is list:
