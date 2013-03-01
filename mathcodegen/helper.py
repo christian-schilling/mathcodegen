@@ -1,6 +1,5 @@
-from sympy import lambdify, Symbol
+from sympy import Symbol
 from expression import Expression
-import types
 
 # replaces function arguments recursively
 # generates lists of symbols and expressions and
