@@ -13,7 +13,7 @@ def replace_arguments(argument, replacer='symbol',
     if type(argument) in (str, unicode, Expression):
         # create expression and symbol for argument
         # to avoid sympy naming conflicts, symbol gets a custom name
-        expression = Expression(argument)
+        expression = argument if type(argument) is Expression else Expression(argument)
         symbol = Symbol(symbol_name_base, real=True)
 
         # replace argument
