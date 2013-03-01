@@ -95,27 +95,25 @@ class Expression:
         ('gamma','tgamma({})'),
     ]
 
-    # pow method expands pow recursivly on int value,
+    # pow method expands pow recursively on int value,
     # or uses built in mathmatical pow for other values
     def __pow__(self, value):
         if not isinstance(value, int):
             return self.pow(value)
 
-        if value < 0:
-            return 1.0 / (self ** (-value))
+        if value > 1:
+            return self * self ** (value-1)
+        elif value == 1:
+            return self
         elif value == 0:
             return Expression(1.0)
-        if value == 1:
-            return self
         else:
-            return self * self ** (value-1)
+            return 1.0 / (self ** (-value))
 
-    # create compound statement containing all subexpressions to 
+    # create compound statement containing all subexpressions to
     # generate single evaluatable expression
     def expand(self, dtype='float'):
         compound_statement = '({\n'
         for subexpression in self.subexpressions:
             compound_statement += '{} {} = {};\n'.format(dtype, subexpression[0], subexpression[1])
-        compound_statement += '{};\n}})'.format(self)
-
-        return compound_statement
+        return compound_statement + '{};\n}})'.format(self)
