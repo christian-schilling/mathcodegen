@@ -1,8 +1,9 @@
-from sympy import lambdify, Symbol
+from sympy import Symbol
 from expression import Expression
 from helper import replace_arguments
 
 # create function which is evaluated by values of Expression type
+# string arguments are replaced by Expressions containing holding its value
 def expressionize(function):
     def func(*args):
         args = list(args)

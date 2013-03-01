@@ -1,6 +1,6 @@
-from sympy import lambdify, Symbol, N, simplify
+from sympy import lambdify, Symbol
 from expression import Expression
-from helper import replace_arguments, map_recursively
+from helper import replace_arguments
 import types
 
 # create function wich is evaluated by sympy symbols
@@ -17,10 +17,8 @@ def symbolic(function):
         lambda_function = lambdify(symargs, function(*args),
             modules=Expression)
 
-        # evaluate expression
+        # evaluate expression and ensure type of result is Expression
         expression = lambda_function(*expargs)
-
-        # create expression type, if neccessary
         if type(expression) not in (list, str, unicode, Expression):
             expression = Expression(expression)
 
