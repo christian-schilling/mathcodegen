@@ -1,7 +1,6 @@
 from sympy import lambdify, Symbol
 from expression import Expression
-from argument_parser import argumentParser
-from result_parser import resultParser
+from helper import replace_arguments
 import types
 
 # create function wich is evaluated by sympy symbols
@@ -10,18 +9,16 @@ def symbolic(function):
     def func(*args):
         args = list(args)
 
-        # replace string or Expression arguments by symbols
-        # used symbols and corresponding expressions are returned
-        args, symargs, expargs = argumentParser(args)
+        # Replace string or Expression arguments by symbols.
+        # Used symbols and corresponding expressions are returned.
+        args, symargs, expargs = replace_arguments(args, replacer='symbol')
 
         # create lambda function of symbolic result of the given function
-        lambda_function = lambdify(symargs, resultParser(function(*args)),
+        lambda_function = lambdify(symargs, function(*args),
             modules=Expression)
 
-        # evaluate expression
+        # evaluate expression and ensure type of result is Expression
         expression = lambda_function(*expargs)
-
-        # create expression type, if neccessary
         if type(expression) not in (list, str, unicode, Expression):
             expression = Expression(expression)
 
