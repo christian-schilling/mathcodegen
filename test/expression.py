@@ -2,8 +2,19 @@ import unittest
 import mathcodegen
 from scipy import weave
 
+class ExpressionTest(unittest.TestCase):
+    def test_pow(self):
+        @mathcodegen.expressionize
+        def pow(x, y):
+            return x ** y
 
-class TestSubexpressions(unittest.TestCase):
+        self.assertAlmostEqual(2.0 ** 5,
+            weave.inline('return_val = {};'.format(pow('2.0', 5))))
+        self.assertAlmostEqual(3.0 ** -4,
+            weave.inline('return_val = {};'.format(pow('3.0', -4))))
+        self.assertAlmostEqual(4.0 ** 7.0,
+            weave.inline('return_val = {};'.format(pow('4.0', '7.0'))))
+
     def test_subexpressions(self):
         @mathcodegen.expressionize
         def mul(x, y):
