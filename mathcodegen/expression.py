@@ -39,7 +39,7 @@ class Expression:
 
     # maximum recursion depth of Expression, above that limit
     # expressions are split up into subexpressions
-    max_recursion_depth = 100
+    max_recursion_depth = 1000
 
     def __init__(self, expression, recursion_depth=1, subexpressions=[]):
         self.expression = expression
@@ -83,6 +83,7 @@ class Expression:
         ('__abs__', 'abs({})'),
         ('Abs', 'abs({})'),
         ('__getitem__','{}[{}]'),
+        ('__ne__','{}!={}'),
         ('__le__','{}<={}'),
         ('__ge__','{}>={}'),
         ('__lt__','{}<{}'),
