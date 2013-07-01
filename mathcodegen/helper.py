@@ -44,11 +44,6 @@ def replace_arguments(argument, replacer='symbol',
 # in nested lists
 def map_recursively(function, value):
     if type(value) is list:
-        result = []
-        for i in range(len(value)):
-            res = map_recursively(function, value[i])
-            result.append(res)
+        return [map_recursively(function, v) for v in value]
     else:
-        result = function(value)
-
-    return result
+        return function(value)
