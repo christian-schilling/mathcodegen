@@ -39,7 +39,6 @@ def map(function, iterations=1, input=[], output=[], assignment='=',
         input=input,
         output=output,
         result=[str(res) for res in function_result],
-        dtype='float',
         iterations=iterations,
         assignment=assignment,
         parallel=parallel)
