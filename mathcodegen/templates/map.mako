@@ -5,7 +5,7 @@ for (int it = 0; it < ${iterations}; ++it) {
 % if not parallel:
 for (int i = 0; i < ${out[1]}; ++i) {
 % endif
-${out[0]}[${out[2]}] ${assignment} ${res};
+${out[0]} ${assignment} ${res};
 % if not parallel:
 }
 % endif

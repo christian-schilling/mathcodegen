@@ -18,7 +18,7 @@ def symbolic(function):
 
         # evaluate expression and ensure type of result is Expression
         expression = lambda_function(*expargs)
-        if type(expression) not in (list, str, unicode, Expression):
+        if type(expression) not in (list, tuple, str, unicode, Expression):
             expression = Expression(expression)
 
         return expression
