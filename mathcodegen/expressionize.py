@@ -1,6 +1,6 @@
 from sympy import Symbol
 from expression import Expression
-from helper import replace_arguments
+from helper import map_recursively
 
 # create function which is evaluated by values of Expression type
 # string arguments are replaced by Expressions containing holding its value
@@ -9,7 +9,9 @@ def expressionize(function):
         args = list(args)
 
         # replace string arguments by values of type Expression
-        args, _, _ = replace_arguments(args, replacer='expression')
+        def argument_replacer(arg):
+            return Expression(arg) if type(arg) in (str, unicode) else arg
+        args = map_recursively(argument_replacer, args)
 
         # evaluate expression
         expression = function(*args)
