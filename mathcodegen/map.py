@@ -1,6 +1,5 @@
 from expression import Expression
 from symbolic import symbolic
-from helper import map_recursively
 from mako.template import Template
 import os
 
@@ -26,8 +25,8 @@ def map(function, iterations=1, input=[], output=[], assignment='=',
         else:
             return arg
 
-    input = map_recursively(eval_indices, input)
-    output = map_recursively(eval_indices, output)
+    input = [eval_indices(arg) for arg in input]
+    output = [eval_indices(arg) for arg in output]
 
     # evaluate function symbolic and create result list if neccessary
     function_result = symbolic(function)(
