@@ -1,7 +1,8 @@
 import unittest
 import pyopencl as cl
 import pyopencl.array
-from mathcodegen import symbolic,iterate_symbolic
+import mathcodegen
+import mathcodegen.pyopencl
 import numpy
 
 class TestElementwise(unittest.TestCase):
@@ -16,7 +17,6 @@ class TestElementwise(unittest.TestCase):
 
     def test_elementwise(self):
 
-        @symbolic
         def add(a,b):
             return [a+b]
 
@@ -24,7 +24,7 @@ class TestElementwise(unittest.TestCase):
         B = cl.array.zeros(self.queue,10,dtype='float32')+1
         C = cl.array.zeros(self.queue,10,dtype='float32')+1
 
-        adder = add.elementwise(self.ctx,input=[A,B],output=[C])
+        adder = mathcodegen.pyopencl.map(self.ctx, add, input=[A,B], output=[C])
 
         adder()
 
@@ -32,14 +32,13 @@ class TestElementwise(unittest.TestCase):
 
     def test_elementwise_with_constant(self):
 
-        @symbolic
         def add(a,b):
             return [a+b]
 
         A = cl.array.zeros(self.queue,10,dtype='float32')+1
         C = cl.array.zeros(self.queue,10,dtype='float32')+1
 
-        adder = add.elementwise(self.ctx,input=[A,3],output=[C])
+        adder = mathcodegen.pyopencl.map(self.ctx, add, input=[A,3], output=[C])
 
         adder()
 
@@ -47,7 +46,6 @@ class TestElementwise(unittest.TestCase):
 
     def test_elementwise_incremental(self):
 
-        @symbolic
         def add(a,b):
             return [a+b]
 
@@ -55,7 +53,8 @@ class TestElementwise(unittest.TestCase):
         B = cl.array.zeros(self.queue,10,dtype='float32')+1
         C = cl.array.zeros(self.queue,10,dtype='float32')
 
-        adder = add.elementwise(self.ctx,input=[A,B],output=[C],assignment='+=')
+        adder = mathcodegen.pyopencl.map(self.ctx, add, input=[A,B],
+            output=[C], assignment='+=')
         adder()
         self.assertEqual(list(C.get()),[2.0]*10)
         adder()
@@ -63,14 +62,13 @@ class TestElementwise(unittest.TestCase):
 
     def test_output_is_input(self):
 
-        @symbolic
         def add(a,b):
             return [a+b]
 
         A = cl.array.zeros(self.queue,10,dtype='float32')+1
         B = cl.array.zeros(self.queue,10,dtype='float32')+1
 
-        adder = add.elementwise(self.ctx,input=[A,B],output=[A])
+        adder = mathcodegen.pyopencl.map(self.ctx,add,input=[A,B],output=[A])
 
         adder()
 
@@ -78,14 +76,13 @@ class TestElementwise(unittest.TestCase):
 
     def test_double_input(self):
 
-        @symbolic
         def add(a,b):
             return [a+b]
 
         A = cl.array.zeros(self.queue,10,dtype='float32')+1
         B = cl.array.zeros(self.queue,10,dtype='float32')+1
 
-        adder = add.map(self.ctx,input=[A,A],output=[B])
+        adder = mathcodegen.pyopencl.map(self.ctx,add,input=[A,A],output=[B])
 
         adder()
 
@@ -97,7 +94,7 @@ class TestElementwise(unittest.TestCase):
         B = cl.array.empty_like(A)
 
 
-        noper = symbolic.map(self.ctx,self.nop,
+        noper = mathcodegen.pyopencl.map(self.ctx,self.nop,
             input=[A],
             output=[B],
             iterations=1,
@@ -108,7 +105,6 @@ class TestElementwise(unittest.TestCase):
 
         self.assertEqual(list(B.get()),range(9,-1,-1))
 
-    @symbolic
     def nop(self,a):
         return [a,a*2]
 
@@ -120,7 +116,7 @@ class TestElementwise(unittest.TestCase):
         C = cl.array.empty_like(A)
 
 
-        noper = symbolic.map(self.ctx,self.nop,
+        noper = mathcodegen.pyopencl.map(self.ctx,self.nop,
             input=[A],
             output=[B,B],
             output_indices=lambda n,i,j: [(2*i)%n,(2*i+1)%n],
@@ -130,7 +126,6 @@ class TestElementwise(unittest.TestCase):
 
         self.assertEqual(list(B.get()),[0,0,1,2,2,4,3,6,4,8])
 
-    @symbolic
     def differece(self,a,b):
         return [a-b]
 
@@ -142,7 +137,7 @@ class TestElementwise(unittest.TestCase):
         B = cl.array.empty_like(A)
 
 
-        differ = symbolic.map(self.ctx,self.differece,
+        differ = mathcodegen.pyopencl.map(self.ctx,self.differece,
             input=[A,X],
             output=[B],
             input_indices=lambda n,i,j: [i+1,i-1],
@@ -158,7 +153,7 @@ class TestElementwise(unittest.TestCase):
         A = cl.array.to_device(self.queue,numpy.array(range(5)*2).astype('float32'))
         B = cl.array.empty_like(A)
 
-        differ = symbolic.map(self.ctx,self.differece,
+        differ = mathcodegen.pyopencl.map(self.ctx,self.differece,
             input=[A,A],
             output=[B],
             input_indices=lambda n,i,j: [i+1,i-1],
