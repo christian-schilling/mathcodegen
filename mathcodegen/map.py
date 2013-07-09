@@ -11,19 +11,23 @@ map_template = Template(
 def map(function, iterations=1, input=[], output=[], assignment='=',
     template=map_template, **kargs):
     # evaluate indexing function for each array argument,
-    # ensure access within array length and append index to expression
+    # ensure access within array length, append index to expression
+    # and create set of array arguments
+    arrays = []
     def eval_indices(arg):
         if type(arg) in (list, tuple):
             index = arg[2] if len(arg) == 3 else lambda n, i, j: i
-            expression, length = arg[0], arg[1]
+            name, length = arg[0], arg[1]
 
             index = index(Expression(length), Expression('i'), Expression('it'))
             index = '({i}>=0?{i}:0)'.format(i=index)
             index = '({i}<{l}?{i}:({l}-1))'.format(i=index, l=length)
 
-            return Expression('{}[{}]'.format(expression, index)), length
-        else:
-            return arg
+            arg =  Expression('{}[{}]'.format(name, index)), length
+            if (name, length) not in arrays:
+                arrays.append((name, length))
+
+        return arg
 
     input = [eval_indices(arg) for arg in input]
     output = [eval_indices(arg) for arg in output]
@@ -36,8 +40,8 @@ def map(function, iterations=1, input=[], output=[], assignment='=',
 
     # create code from mako template
     return template.render(
-        input=input,
-        output=output,
+        arrays=list(arrays),
+        output=[out[0] for out in output],
         result=[str(res) for res in function_result],
         iterations=iterations,
         assignment=assignment,

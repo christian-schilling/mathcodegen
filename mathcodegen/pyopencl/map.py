@@ -1,6 +1,8 @@
-from pyopencl.elementwise import ElementwiseKernel
+import pyopencl as cl
 from pyopencl.array import Array
+from mako.template import Template
 from .. import map as mmap
+import os
 
 def map(cl_context, function, iterations=1, input=[], output=[], assignment='='):
     # get list of pyopencl arrays in input and output
@@ -9,12 +11,12 @@ def map(cl_context, function, iterations=1, input=[], output=[], assignment='=')
         if type(x) in (list, tuple) and not hasattr(x[0], 'paramname'):
             arrays.append(x[0])
             x[0].paramname = 'param{}'.format(i)
-            i+=1
+            i += 1
 
         elif type(x) is Array and not hasattr(x, 'paramname'):
             arrays.append(x)
             x.paramname = 'param{}'.format(i)
-            i+=1
+            i += 1
 
     # wrap input and output argument list to match mathcodegen map format
     def wrap_pyopencl_arg(arg):
@@ -29,13 +31,16 @@ def map(cl_context, function, iterations=1, input=[], output=[], assignment='=')
     input = [wrap_pyopencl_arg(arg) for arg in input]
     output = [wrap_pyopencl_arg(arg) for arg in output]
 
-    paramlist = ','.join(["float* {}".format(x.paramname) for x in arrays])
-    code = mmap(function, iterations, input, output, assignment)
+    code = mmap(function, iterations, input, output, assignment,
+        template=Template(filename=os.path.join(os.path.dirname(__file__),
+            'kernel.mako')))
+    print code, arrays
 
-    kernel = ElementwiseKernel(cl_context, paramlist, code, "update")
+    kernel = cl.Program(cl_context, code).build()
 
     def updater(queue=None):
-        kernel(*arrays)
+        kernel.update(queue, (max([x.shape for x in arrays]),),
+            None, *[x.data for x in arrays])
     updater.code = code
 
     for x in arrays:
