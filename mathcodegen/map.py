@@ -8,8 +8,8 @@ map_template = Template(
     filename=os.path.join(os.path.dirname(__file__), 'templates',
         'map.mako'))
 
-def map(function, iterations=1, input=[], output=[], assignment='=', template=map_template,
-    **kargs):
+def map(function, iterations=1, input=[], output=[], assignment='=',
+    template=map_template, **kargs):
     # evaluate indexing function for each array argument,
     # ensure access within array length and append index to expression
     def eval_indices(arg):
