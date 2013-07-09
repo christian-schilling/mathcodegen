@@ -2,40 +2,44 @@ from pyopencl.elementwise import ElementwiseKernel
 from pyopencl.array import Array
 from .. import map as mmap
 
-def map(cl_context, function, iterations=1, input=[], output=[],
-    output_indices=None, input_indices=None, assignment='='):
-    unique = []
+def map(cl_context, function, iterations=1, input=[], output=[], assignment='='):
+    # get list of pyopencl arrays
+    arrays = []
     i=0
-    for x in input+output:
-        if not hasattr(x,'paramname') and isinstance(x,Array):
-            unique.append(x)
+    for x in input + output:
+        if type(x) in (list, tuple) and not hasattr(x[0], 'paramname'):
+            arrays.append(x[0])
+            x[0].paramname = 'param{}'.format(i)
+            i+=1
+
+        elif type(x) is Array and not hasattr(x, 'paramname'):
+            arrays.append(x)
             x.paramname = 'param{}'.format(i)
             i+=1
 
-    in_indices = [lambda x, y, z: y] * len(input)
-    if input_indices is not None:
-        in_indices = [lambda x, y, z: input_indices(x, y, z)[i] for i in range(len(input))]
+    # wrap input and output argument list to match mathcodegen map format
+    def wrap_pyopencl_arg(arg):
+        if type(arg) in (list, tuple) and type(arg[0]) is Array:
+            return (arg[0].paramname, len(arg[0]),
+                (lambda x, y, z: y) if len(arg) < 2 else arg[1])
+        elif type(arg) is Array:
+            return (arg.paramname, len(arg), lambda x, y, z: y)
+        else:
+            return arg
 
-    out_indices = [lambda x, y, z: y] * len(input)
-    if output_indices is not None:
-        out_indices = [lambda x, y, z: output_indices(x, y, z)[i] for i in range(len(output))]
+    input = [wrap_pyopencl_arg(arg) for arg in input]
+    output = [wrap_pyopencl_arg(arg) for arg in output]
 
-    # wrap pyopencl Array to map tuple format
-    input = [(x.paramname, len(x), in_indices[i]) \
-            if type(x) is Array else x for i, x in enumerate(input)]
-    output = [(x.paramname, len(x), out_indices[i]) \
-            if type(x) is Array else x for i, x in enumerate(output)]
-
-    paramlist = ','.join(["float* {}".format(x.paramname) for x in unique])
+    paramlist = ','.join(["float* {}".format(x.paramname) for x in arrays])
     code = mmap(function, iterations, input, output, assignment)
 
-    kernel = ElementwiseKernel(cl_context, paramlist, code,"update")
+    kernel = ElementwiseKernel(cl_context, paramlist, code, "update")
 
     def updater(queue=None):
-        kernel(*unique)
+        kernel(*arrays)
     updater.code = code
 
-    for x in unique:
+    for x in arrays:
         del x.paramname
 
     return updater
