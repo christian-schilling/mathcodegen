@@ -1,4 +1,4 @@
-__kernel void map(
+__kernel void elementwise(
 % for i in range(len(arrays)):
 % if i < len(arrays) - 1:
     __global float* ${arrays[i][0]},

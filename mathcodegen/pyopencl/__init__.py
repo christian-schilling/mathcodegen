@@ -1,1 +1,1 @@
-from map import *
+from elementwise import elementwise

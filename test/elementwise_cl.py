@@ -5,7 +5,7 @@ import mathcodegen
 import mathcodegen.pyopencl
 import numpy
 
-class TestMapCL(unittest.TestCase):
+class TestElementwiseCL(unittest.TestCase):
     def setUp(self):
         self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)
@@ -14,7 +14,7 @@ class TestMapCL(unittest.TestCase):
         del self.queue
         del self.ctx
 
-    def test_map_cl(self):
+    def test_elementwise_cl(self):
         def add(a, b):
             return a + b
 
@@ -22,26 +22,26 @@ class TestMapCL(unittest.TestCase):
         B = cl.array.zeros(self.queue, 10, dtype='float32') + 1
         C = cl.array.zeros(self.queue, 10, dtype='float32') + 1
 
-        adder = mathcodegen.pyopencl.map(self.ctx, add,
+        adder = mathcodegen.pyopencl.elementwise(self.ctx, add,
             input=[A, B], output=[C])
 
         adder(self.queue)
         self.assertEqual(list(C.get()), [2.0] * 10)
 
-    def test_map_cl_with_constant(self):
+    def test_elementwise_cl_with_constant(self):
         def add(a, b):
             return a + b
 
         A = cl.array.zeros(self.queue, 10, dtype='float32') + 1
         C = cl.array.zeros(self.queue, 10, dtype='float32') + 1
 
-        adder = mathcodegen.pyopencl.map(self.ctx, add,
+        adder = mathcodegen.pyopencl.elementwise(self.ctx, add,
             input=[A, 3], output=[C])
 
         adder(self.queue)
         self.assertEqual(list(C.get()), [4.0] * 10)
 
-    def test_map_cl_incremental(self):
+    def test_elementwise_cl_incremental(self):
         def add(a, b):
             return a + b
 
@@ -49,7 +49,7 @@ class TestMapCL(unittest.TestCase):
         B = cl.array.zeros(self.queue, 10, dtype='float32') + 1
         C = cl.array.zeros(self.queue, 10, dtype='float32')
 
-        adder = mathcodegen.pyopencl.map(self.ctx, add,
+        adder = mathcodegen.pyopencl.elementwise(self.ctx, add,
             input=[A, B], output=[C], assignment='+=')
 
         adder(self.queue)
@@ -65,7 +65,7 @@ class TestMapCL(unittest.TestCase):
         A = cl.array.zeros(self.queue, 10, dtype='float32') + 1
         B = cl.array.zeros(self.queue, 10, dtype='float32') + 1
 
-        adder = mathcodegen.pyopencl.map(self.ctx, add,
+        adder = mathcodegen.pyopencl.elementwise(self.ctx, add,
             input=[A, B], output=[A])
 
         adder(self.queue)
@@ -78,7 +78,7 @@ class TestMapCL(unittest.TestCase):
         A = cl.array.zeros(self.queue, 10, dtype='float32') + 1
         B = cl.array.zeros(self.queue, 10, dtype='float32') + 1
 
-        adder = mathcodegen.pyopencl.map(self.ctx, add,
+        adder = mathcodegen.pyopencl.elementwise(self.ctx, add,
             input=[A, A], output=[B])
 
         adder(self.queue)
@@ -89,7 +89,7 @@ class TestMapCL(unittest.TestCase):
             numpy.arange(0, 10).astype('float32'))
         B = cl.array.empty_like(A)
 
-        noper = mathcodegen.pyopencl.map(self.ctx, self.nop,
+        noper = mathcodegen.pyopencl.elementwise(self.ctx, self.nop,
             input=[A], output=[(B, lambda n, i, j: n - i - 1)],
             iterations=1)
 
@@ -105,7 +105,7 @@ class TestMapCL(unittest.TestCase):
         B = cl.array.empty_like(A)
         C = cl.array.empty_like(A)
 
-        noper = mathcodegen.pyopencl.map(self.ctx, self.nop, input=[A],
+        noper = mathcodegen.pyopencl.elementwise(self.ctx, self.nop, input=[A],
             output=[
                 (B, lambda n, i, j: (2 * i) % n),
                 (B, lambda n, i, j: (2 * i + 1) % n)
@@ -124,7 +124,7 @@ class TestMapCL(unittest.TestCase):
             numpy.array(range(5) * 2).astype('float32'))
         B = cl.array.empty_like(A)
 
-        differ = mathcodegen.pyopencl.map(self.ctx,self.differece,
+        differ = mathcodegen.pyopencl.elementwise(self.ctx,self.differece,
             input=[(A, lambda n, i, j: i + 1), (X, lambda n, i, j: i - 1)],
             output=[B])
 
@@ -137,7 +137,7 @@ class TestMapCL(unittest.TestCase):
             numpy.array(range(5)*2).astype('float32'))
         B = cl.array.empty_like(A)
 
-        differ = mathcodegen.pyopencl.map(self.ctx,self.differece,
+        differ = mathcodegen.pyopencl.elementwise(self.ctx,self.differece,
             input=[(A, lambda n, i, j: i + 1), (A, lambda n, i, j: i - 1)],
             output=[B])
 

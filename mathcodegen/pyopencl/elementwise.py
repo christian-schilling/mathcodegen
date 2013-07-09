@@ -1,10 +1,11 @@
 import pyopencl as cl
 from pyopencl.array import Array
 from mako.template import Template
-from .. import map as mmap
+from .. import elementwise as melementwise
 import os
 
-def map(cl_context, function, iterations=1, input=[], output=[], assignment='='):
+def elementwise(cl_context, function, iterations=1, input=[],
+    output=[], assignment='='):
     # get list of pyopencl arrays in input and output
     # and generate temporary paramter names
     arrays, i = [], 0
@@ -19,7 +20,7 @@ def map(cl_context, function, iterations=1, input=[], output=[], assignment='=')
             x.paramname = 'param{}'.format(i)
             i += 1
 
-    # wrap input and output argument list to match mathcodegen map format
+    # wrap input and output argument list to match mathcodegen elementwise format
     def wrap_pyopencl_arg(arg):
         if type(arg) in (list, tuple) and type(arg[0]) is Array:
             return (arg[0].paramname, len(arg[0]),
@@ -32,17 +33,18 @@ def map(cl_context, function, iterations=1, input=[], output=[], assignment='=')
     input = [wrap_pyopencl_arg(arg) for arg in input]
     output = [wrap_pyopencl_arg(arg) for arg in output]
 
-    # generate opencl code with mathcodegen.map function and special kernel template
-    code = mmap(function, iterations, input, output, assignment,
+    # generate opencl code with mathcodegen.elementwise function
+    # and special kernel template
+    code = melementwise(function, iterations, input, output, assignment,
         template=Template(filename=os.path.join(os.path.dirname(__file__),
             'kernel.mako')))
 
     # build opencl kernel for generated code and define
     # function which executes kernel on the maximum size
     # of the array arguments
-    kernel = cl.Program(cl_context, code).build()
+    program = cl.Program(cl_context, code).build()
     def updater(queue):
-        kernel.map(queue, (max([len(x) for x in arrays]),),
+        program.elementwise(queue, (max([len(x) for x in arrays]),),
             None, *[x.data for x in arrays])
     updater.code = code
 
