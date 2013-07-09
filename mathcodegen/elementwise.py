@@ -1,4 +1,5 @@
 from expression import Expression
+from expressionize import expressionize
 from symbolic import symbolic
 from mako.template import Template
 import os
@@ -6,9 +7,9 @@ import os
 # mako template for generating c code
 map_template = Template(
     filename=os.path.join(os.path.dirname(__file__), 'templates',
-        'map.mako'))
+        'elementwise.mako'))
 
-def map(function, iterations=1, input=[], output=[], assignment='=',
+def elementwise(function, iterations=1, input=[], output=[], assignment='=',
     template=map_template, **kargs):
     # evaluate indexing function for each array argument,
     # ensure access within array length, append index to expression
@@ -19,11 +20,11 @@ def map(function, iterations=1, input=[], output=[], assignment='=',
             index = arg[2] if len(arg) == 3 else lambda n, i, j: i
             name, length = arg[0], arg[1]
 
-            index = index(Expression(length), Expression('i'), Expression('it'))
+            index = expressionize(index)(length, 'i', 'it')
             index = (index >= 0).select(index, 0)
             index = (index < length).select(index, length - 1)
 
-            arg =  Expression('{}[{}]'.format(name, index)), length
+            arg = Expression(name)[index], length
             if (name, length) not in arrays:
                 arrays.append((name, length))
 
