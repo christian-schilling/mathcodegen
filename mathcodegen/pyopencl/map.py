@@ -6,6 +6,7 @@ import os
 
 def map(cl_context, function, iterations=1, input=[], output=[], assignment='='):
     # get list of pyopencl arrays in input and output
+    # and generate temporary paramter names
     arrays, i = [], 0
     for x in input + output:
         if type(x) in (list, tuple) and not hasattr(x[0], 'paramname'):
@@ -31,18 +32,21 @@ def map(cl_context, function, iterations=1, input=[], output=[], assignment='=')
     input = [wrap_pyopencl_arg(arg) for arg in input]
     output = [wrap_pyopencl_arg(arg) for arg in output]
 
+    # generate opencl code with mathcodegen.map function and special kernel template
     code = mmap(function, iterations, input, output, assignment,
         template=Template(filename=os.path.join(os.path.dirname(__file__),
             'kernel.mako')))
-    print code, arrays
 
+    # build opencl kernel for generated code and define
+    # function which executes kernel on the maximum size
+    # of the array arguments
     kernel = cl.Program(cl_context, code).build()
-
-    def updater(queue=None):
-        kernel.update(queue, (max([x.shape for x in arrays]),),
+    def updater(queue):
+        kernel.map(queue, (max([len(x) for x in arrays]),),
             None, *[x.data for x in arrays])
     updater.code = code
 
+    # cleanup parameter names for arrays
     for x in arrays:
         del x.paramname
 

@@ -6,7 +6,7 @@ __kernel void map(
     __global float* ${arrays[i][0]}) {
 % endif
 % endfor
-unsigned int i = get_global_id(0);
+int i = get_global_id(0);
 % if iterations > 1:
 for (int it = 0; it < ${iterations}; ++it) {
 % endif
