@@ -4,13 +4,13 @@ from symbolic import symbolic
 from mako.template import Template
 import os
 
-# mako template for generating c code
-map_template = Template(
+# mako template for generating code
+code_template = Template(
     filename=os.path.join(os.path.dirname(__file__), 'templates',
         'elementwise.mako'))
 
 def elementwise(function, iterations=1, input=[], output=[], assignment='=',
-    template=map_template, **kargs):
+    template=code_template, **kargs):
     # evaluate indexing function for each array argument,
     # ensure access within array length, append index to expression
     # and create set of array arguments
