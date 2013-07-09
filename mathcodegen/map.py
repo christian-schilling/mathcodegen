@@ -20,8 +20,8 @@ def map(function, iterations=1, input=[], output=[], assignment='=',
             name, length = arg[0], arg[1]
 
             index = index(Expression(length), Expression('i'), Expression('it'))
-            index = '({i}>=0?{i}:0)'.format(i=index)
-            index = '({i}<{l}?{i}:({l}-1))'.format(i=index, l=length)
+            index = (index >= 0).select(index, 0)
+            index = (index < length).select(index, length - 1)
 
             arg =  Expression('{}[{}]'.format(name, index)), length
             if (name, length) not in arrays:
