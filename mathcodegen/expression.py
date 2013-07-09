@@ -50,7 +50,7 @@ class Expression:
             'compound_statement.mako'))
 
     def __init__(self, expression, recursion_depth=1, subexpressions=[]):
-        self.expression = expression
+        self.expression = str(expression)
         self.recursion_depth = recursion_depth
         self.subexpressions = subexpressions
 
