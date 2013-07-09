@@ -3,9 +3,8 @@ from pyopencl.array import Array
 from .. import map as mmap
 
 def map(cl_context, function, iterations=1, input=[], output=[], assignment='='):
-    # get list of pyopencl arrays
-    arrays = []
-    i=0
+    # get list of pyopencl arrays in input and output
+    arrays, i = [], 0
     for x in input + output:
         if type(x) in (list, tuple) and not hasattr(x[0], 'paramname'):
             arrays.append(x[0])
