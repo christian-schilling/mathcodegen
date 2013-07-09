@@ -9,7 +9,7 @@ code_template = Template(
     filename=os.path.join(os.path.dirname(__file__), 'templates',
         'elementwise.mako'))
 
-def elementwise(function, iterations=1, input=[], output=[], assignment='=',
+def elementwise(function, input=[], output=[], assignment='=', iterations=1,
     template=code_template, **kargs):
     # evaluate indexing function for each array argument,
     # ensure access within array length, append index to expression

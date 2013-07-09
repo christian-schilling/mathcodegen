@@ -16,12 +16,8 @@ def expressionize(function):
         # evaluate expression
         expression = function(*args)
 
-        # concacate expression lists
-        if type(expression) is list:
-            expression = ';'.join(map(str, expression))
-
         # create values of type expression, if neccessary
-        elif type(expression) not in (str, unicode, Expression):
+        if type(expression) not in (str, unicode, Expression):
             expression = Expression(expression)
 
         return expression

@@ -4,8 +4,8 @@ from mako.template import Template
 from .. import elementwise as melementwise
 import os
 
-def elementwise(cl_context, function, iterations=1, input=[],
-    output=[], assignment='='):
+def elementwise(cl_context, function, input=[], output=[],
+    assignment='=', iterations=1):
     # get list of pyopencl arrays in input and output
     # and generate temporary paramter names
     arrays, i = [], 0
@@ -35,7 +35,7 @@ def elementwise(cl_context, function, iterations=1, input=[],
 
     # generate opencl code with mathcodegen.elementwise function
     # and special kernel template
-    code = melementwise(function, iterations, input, output, assignment,
+    code = melementwise(function, input, output, assignment, iterations,
         template=Template(filename=os.path.join(os.path.dirname(__file__),
             'kernel.mako')))
 
