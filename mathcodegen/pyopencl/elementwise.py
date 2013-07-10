@@ -14,7 +14,8 @@ def elementwise(cl_context, function, input=[], output=[],
     # and generate temporary paramter names
     arrays, i = [], 0
     for x in input + output:
-        if type(x) in (list, tuple) and not hasattr(x[0], 'paramname'):
+        if type(x) in (list, tuple) and type(x[0]) is Array\
+            and not hasattr(x[0], 'paramname'):
             arrays.append(x[0])
             x[0].paramname = 'param{}'.format(i)
             i += 1
