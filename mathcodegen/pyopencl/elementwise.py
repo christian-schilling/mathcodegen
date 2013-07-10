@@ -4,6 +4,10 @@ from mako.template import Template
 from .. import elementwise as melementwise
 import os
 
+# load opencl kernel template from file
+kernel_template = Template(filename=os.path.join(
+    os.path.dirname(__file__), 'kernel.mako'))
+
 def elementwise(cl_context, function, input=[], output=[],
     assignment='=', iterations=1):
     # get list of pyopencl arrays in input and output
@@ -36,8 +40,7 @@ def elementwise(cl_context, function, input=[], output=[],
     # generate opencl code with mathcodegen.elementwise function
     # and special kernel template
     code = melementwise(function, input, output, assignment, iterations,
-        template=Template(filename=os.path.join(os.path.dirname(__file__),
-            'kernel.mako')))
+        template=kernel_template)
 
     # build opencl kernel for generated code and define
     # function which executes kernel on the maximum size
