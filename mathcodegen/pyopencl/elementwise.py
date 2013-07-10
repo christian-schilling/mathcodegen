@@ -28,9 +28,9 @@ def elementwise(cl_context, function, input=[], output=[],
     def wrap_pyopencl_arg(arg):
         if type(arg) in (list, tuple) and type(arg[0]) is Array:
             return (arg[0].paramname, len(arg[0]),
-                (lambda x, y, z: y) if len(arg) < 2 else arg[1])
+                (lambda n, i, j: i) if len(arg) < 2 else arg[1])
         elif type(arg) is Array:
-            return (arg.paramname, len(arg), lambda x, y, z: y)
+            return (arg.paramname, len(arg))
         else:
             return arg
 
