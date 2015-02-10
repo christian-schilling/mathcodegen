@@ -100,11 +100,11 @@ class Expression:
         ('assign','{}={}'),
         ('cast','{1}({0})'),
         ('floor','floor({})'),
-        ('clip','min(max({},(float){}),(float){})'),
+        ('clip','min(max({},{}),{})'),
         ('cos','cos({})'),
         ('sin','sin({})'),
         ('pow','pow({},{})'),
-        ('sqrt','sqrt((float){})'),
+        ('sqrt','sqrt({})'),
         ('gamma','tgamma({})'),
     ]
 
