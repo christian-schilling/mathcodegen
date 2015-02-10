@@ -1,3 +1,6 @@
+from mako.template import Template
+import os
+
 # creates attributes and methods for Expression class from lists
 # of tuples. The only use of it is to save some lines of code
 class ExpressionMeta(type):
@@ -39,10 +42,15 @@ class Expression:
 
     # maximum recursion depth of Expression, above that limit
     # expressions are split up into subexpressions
-    max_recursion_depth = 100
+    max_recursion_depth = 1000
+
+    # mako templates for creating special c expressions
+    compound_statement_template = Template(
+        filename=os.path.join(os.path.dirname(__file__), 'templates',
+            'compound_statement.mako'))
 
     def __init__(self, expression, recursion_depth=1, subexpressions=[]):
-        self.expression = expression
+        self.expression = str(expression)
         self.recursion_depth = recursion_depth
         self.subexpressions = subexpressions
 
@@ -83,6 +91,7 @@ class Expression:
         ('__abs__', 'abs({})'),
         ('Abs', 'abs({})'),
         ('__getitem__','{}[{}]'),
+        ('__ne__','{}!={}'),
         ('__le__','{}<={}'),
         ('__ge__','{}>={}'),
         ('__lt__','{}<{}'),
@@ -91,11 +100,11 @@ class Expression:
         ('assign','{}={}'),
         ('cast','{1}({0})'),
         ('floor','floor({})'),
-        ('clip','min(max({},(float){}),(float){})'),
+        ('clip','min(max({},{}),{})'),
         ('cos','cos({})'),
         ('sin','sin({})'),
         ('pow','pow({},{})'),
-        ('sqrt','sqrt((float){})'),
+        ('sqrt','sqrt({})'),
         ('gamma','tgamma({})'),
     ]
 
@@ -117,7 +126,7 @@ class Expression:
     # create compound statement containing all subexpressions to
     # generate single evaluatable expression
     def expand(self, dtype='float'):
-        return '({' + \
-            ''.join(['{} {} = {};\n'.format(dtype, name, subexpression)
-                for name, subexpression in self.subexpressions]) + \
-            '{};}})'.format(self)
+        return self.compound_statement_template.render(
+            expression=str(self),
+            subexpressions=self.subexpressions,
+            dtype=dtype)
